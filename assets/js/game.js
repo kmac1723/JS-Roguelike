@@ -2,24 +2,28 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T13:11:49+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-28T11:27:39+01:00
+ * @Last modified time: 2018-04-29T14:43:32+01:00
  */
 
  // rot.js tutorial program
 
  // TODO: Make game react to button presses without having to click on the window
  // TODO: Properly organise and document all scripts, to ensure understanding.
- 
 
  var Game =  {
     _display: null,
     _currentScreen: null,
     _screenWidth: 80,
     _screenHeight: 24,
+    _fontSize: 25,
 
     init: function() {
         // Any necessary initialization will go here.
-        this._display = new ROT.Display({width: this._screenWidth, height: this._screenHeight + 1});
+        this._display = new ROT.Display({
+          width: this._screenWidth,
+          height: this._screenHeight + 1,
+          fontSize: this._fontSize
+        });
 
         var game = this; // So that we don't lose this
         var bindEventToScreen = function(event) {

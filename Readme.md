@@ -6,6 +6,36 @@ library by Alexandru Marasteanu for the messaging system.
 
 All required packages (rot.js, sprintf.js) are bundled in the /lib/ directory.
 
+TO PLAY THE GAME:
+  Open up main.html in a browser.  There should be a game window with the Javascript
+    Roguelike game in it.
+
+    SYMBOLS:
+    @ : player character (you!)
+    # : Wall
+    . : Floor
+    < , > : Stairways to next/previous level.
+    * , % : Items (rock, apple)
+    F , : , B : Enemies
+
+    CONTROLS:
+    - Arrow keys to move.
+    - Hit < or > to move up or down a level while on a stairway.
+    - i to open inventory.
+    - , key to pick up items.
+    - d to drop items.
+    - Press Enter to activate the win screen.
+    - Press Escape to activate the lose screen.
+
+    GAMEPLAY "FEATURES":
+    - Walls can be tunnelled through by moving into them.
+    - Enemies can be attacked by moving into a tile adjacent to them and then
+        attempting to move into the tile that they occupy.  Enemies except the
+        Fungus (F) can attack the player in a similar way, and the player has
+        1hp, so have fun with that.
+    - When entering a gameover state (e.g. death), the page requires refreshing
+        to restart the game.
+
 NOTE REGARDING TUTORIAL:
   The last update to the series was on November 25, 2013, and apparently has not been
   updated since.  
@@ -17,14 +47,20 @@ NOTE REGARDING TUTORIAL:
     This could be a good place to start when looking to progress with the project.
 
 CURRENT STATE:
-  Generates a multi-level cave system
-  Player character that moves and attacks, and can travel between levels.
-  Fungus that clones itself
-  Only renders tiles within player radius of sight, and previously explored.
+  A title screen, play screen, and win and lose game over screens.
+  Randomly generates a multi-level cave system
+  Player character that moves and attacks, and can travel between levels and dig
+    through walls.
+  Enemies that randomly move and attack the player, and a fungus that clones itself.
+  Only renders tiles and entities within player radius of sight, and renders previously
+    explored tiles in gray.
   Messaging system that displays player health and combat messages.
+  Items that sit on dungeon floor.
 
 POSSIBLE IMPROVEMENTS:
   Visible tiles are checked and stored in a hashmap.  There are faster methods to do this.
+  Refactor display elements to handle screen resizing and different devices.  Also expose
+    game parameters and messages to other html elements for finer GUI formatting.
 
 
 Tutorial series: http://www.codingcookies.com/2013/04/01/building-a-roguelike-in-javascript-part-1/
@@ -36,4 +72,4 @@ rot.js is (C) 2012-2018 Ondrej Zara
 Alexandru Marasteanu on Github: https://github.com/alexei
 sprintf library on Github: https://github.com/alexei/sprintf.js
 
-Series of articles on roguelike development: http://www.roguebasin.com/index.php?title=Articles
+Useful series of articles on roguelike development: http://www.roguebasin.com/index.php?title=Articles

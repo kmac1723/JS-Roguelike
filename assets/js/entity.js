@@ -2,10 +2,10 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T16:23:55+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-28T11:25:40+01:00
+ * @Last modified time: 2018-04-29T18:06:33+01:00
  */
 
- 
+
  Game.Entity = function(properties) {
    properties = properties || {};
     // Call the glyph's construtor with our set of properties
@@ -45,6 +45,7 @@
         }
     }
  }
+
  // Make entities inherit all the functionality from glyphs
  Game.Entity.extend(Game.Glyph);
 
@@ -57,12 +58,86 @@
    }
 }
 
+// Instead of adding a mixin for moving, add tryMove function to entity class.
+// NOTE: tryMove calls an attack function when Attacker 'colliding' with player.
+//  Therefore may need to refactor and seperate this out to enable other interaction
+//    options between hostile and non-hostile creatures?
+Game.Entity.prototype.tryMove = function(x, y, z, map) {
+    var map = this.getMap();
+    // Must use starting z
+    var tile = map.getTile(x, y, this.getZ());
+    var target = map.getEntityAt(x, y, this.getZ());
+    // If our z level changed, check if we are on stair
+    if (z < this.getZ()) {
+        if (tile != Game.Tile.stairsUpTile) {
+            Game.sendMessage(this, "You can't go up here!");
+        } else {
+            Game.sendMessage(this, "You ascend to level %d!", [z + 1]);
+            this.setPosition(x, y, z);
+        }
+    } else if (z > this.getZ()) {
+        if (tile != Game.Tile.stairsDownTile) {
+            Game.sendMessage(this, "You can't go down here!");
+        } else {
+            this.setPosition(x, y, z);
+            Game.sendMessage(this, "You descend to level %d!", [z + 1]);
+        }
+        // If an entity was present at the tile
+        } else if (target) {
+            // An entity can only attack if the entity has the Attacker mixin and
+            // either the entity or the target is the player.
+            if (this.hasMixin('Attacker') &&
+                (this.hasMixin(Game.Mixins.PlayerActor) ||
+                 target.hasMixin(Game.Mixins.PlayerActor))) {
+                this.attack(target);
+                return true;
+            }
+            // If not nothing we can do, but we can't
+            // move to the tile
+            return false;
+        // Check if we can walk on the tile
+        // and if so simply walk onto it
+        } else if (tile.isWalkable()) {
+            // Update the entity's position
+            this.setPosition(x, y, z);
+            // Notify the entity that there are items at this position
+            var items = this.getMap().getItemsAt(x, y, z);
+            if (items) {
+                if (items.length === 1) {
+                    Game.sendMessage(this, "You see %s.", [items[0].describeA()]);
+                } else {
+                    Game.sendMessage(this, "There are several objects here.");
+                }
+            }
+            return true;
+        // Check if the tile is diggable
+        } else if (tile.isDiggable()) {
+            // Only dig if the the entity is the player
+            if (this.hasMixin(Game.Mixins.PlayerActor)) {
+                map.dig(x, y, z);
+                return true;
+            }
+            // If not nothing we can do, but we can't
+            // move to the tile
+            return false;
+        }
+        return false;
+};
+
 // Getter/Setter methods
 Game.Entity.prototype.setPosition = function(x, y, z) {
+    var oldX = this._x;
+    var oldY = this._y;
+    var oldZ = this._z;
+    // Update position
     this._x = x;
     this._y = y;
     this._z = z;
-}
+    // If the entity is on a map, notify the map that the entity has moved.
+    if (this._map) {
+        this._map.updateEntityPosition(this, oldX, oldY, oldZ);
+    }
+};
  Game.Entity.prototype.setName = function(name) {
      this._name = name;
  }

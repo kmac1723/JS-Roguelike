@@ -2,61 +2,25 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T16:48:30+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-28T20:18:54+01:00
+ * @Last modified time: 2018-04-29T17:44:32+01:00
  */
  // Create our Mixins namespace
  Game.Mixins = {};
 
-// Movable mixin
- Game.Mixins.Moveable = {
-     name: 'Moveable',
-     tryMove: function(x, y, z, map) {
-         var map = this.getMap();
-         // Must use starting z
-         var tile = map.getTile(x, y, this.getZ());
-         var target = map.getEntityAt(x, y, this.getZ());
-         // If our z level changed, check if we are on stair
-         if (z < this.getZ()) {
-             if (tile != Game.Tile.stairsUpTile) {
-                 Game.sendMessage(this, "You can't go up here!");
-             } else {
-                 Game.sendMessage(this, "You ascend to level %d!", [z + 1]);
-                 this.setPosition(x, y, z);
-             }
-         } else if (z > this.getZ()) {
-             if (tile != Game.Tile.stairsDownTile) {
-                 Game.sendMessage(this, "You can't go down here!");
-             } else {
-                 this.setPosition(x, y, z);
-                 Game.sendMessage(this, "You descend to level %d!", [z + 1]);
-             }
-         // If an entity was present at the tile
-         } else if (target) {
-             // If we are an attacker, try to attack
-             // the target
-             if (this.hasMixin('Attacker')) {
-                 this.attack(target);
-                 return true;
-             } else {
-                 // If not nothing we can do, but we can't
-                 // move to the tile
-                 return false;
-             }
-         // Check if we can walk on the tile
-         // and if so simply walk onto it
-         } else if (tile.isWalkable()) {
-             // Update the entity's position
-             this.setPosition(x, y, z);
-             return true;
-         // Check if the tile is diggable, and
-         // if so try to dig it
-         } else if (tile.isDiggable()) {
-             map.dig(x, y, z);
-             return true;
-         }
-         return false;
-     }
- };
+ Game.Mixins.WanderActor = {
+    name: 'WanderActor',
+    groupName: 'Actor',
+    act: function() {
+        // Flip coin to determine if moving by 1 in the positive or negative direction
+        var moveOffset = (Math.round(Math.random()) === 1) ? 1 : -1;
+        // Flip coin to determine if moving in x direction or y direction
+        if (Math.round(Math.random()) === 1) {
+            this.tryMove(this.getX() + moveOffset, this.getY(), this.getZ());
+        } else {
+            this.tryMove(this.getX(), this.getY() + moveOffset, this.getZ());
+        }
+    }
+};
 
  Game.Mixins.Destructible = {
     name: 'Destructible',
@@ -81,9 +45,13 @@
         this._hp -= damage;
         // If have 0 or less HP, then remove ourseles from the map
         if (this._hp <= 0) {
-          Game.sendMessage(attacker, 'You kill the %s!', [this.getName()]);
-          Game.sendMessage(this, 'You die!');
-            this.getMap().removeEntity(this);
+            Game.sendMessage(attacker, 'You kill the %s!', [this.getName()]);
+            // Check if the player died, and if so call their act method to prompt the user.
+            if (this.hasMixin(Game.Mixins.PlayerActor)) {
+                this.act();
+            } else {
+                this.getMap().removeEntity(this);
+            }
         }
     }
 }
@@ -177,6 +145,12 @@ Game.Mixins.PlayerActor = {
     name: 'PlayerActor',
     groupName: 'Actor',
     act: function() {
+      // Detect if the game is over
+        if (this.getHp() < 1) {
+            Game.Screen.playScreen.setGameEnded(true);
+            // Send a last message to the player
+            Game.sendMessage(this, 'You have died... Press [Enter] to continue!');
+        }
         // Re-render the screen
         Game.refresh();
         // Lock the engine and wait asynchronously
@@ -185,19 +159,93 @@ Game.Mixins.PlayerActor = {
         // Clear the message queue
         this.clearMessages();
     }
-}
+};
+
+// INventory mixins
+Game.Mixins.InventoryHolder = {
+    name: 'InventoryHolder',
+    init: function(template) {
+        // Default to 10 inventory slots.
+        var inventorySlots = template['inventorySlots'] || 10;
+        // Set up an empty inventory.
+        this._items = new Array(inventorySlots);
+    },
+    getItems: function() {
+        return this._items;
+    },
+    getItem: function(i) {
+        return this._items[i];
+    },
+    addItem: function(item) {
+        // Try to find a slot, returning true only if we could add the item.
+        for (var i = 0; i < this._items.length; i++) {
+            if (!this._items[i]) {
+                this._items[i] = item;
+                return true;
+            }
+        }
+        return false;
+    },
+    removeItem: function(i) {
+        // Simply clear the inventory slot.
+        this._items[i] = null;
+    },
+    canAddItem: function() {
+        // Check if we have an empty slot.
+        for (var i = 0; i < this._items.length; i++) {
+            if (!this._items[i]) {
+                return true;
+            }
+        }
+        return false;
+    },
+    pickupItems: function(indices) {
+        // Allows the user to pick up items from the map, where indices is
+        // the indices for the array returned by map.getItemsAt
+        var mapItems = this._map.getItemsAt(this.getX(), this.getY(), this.getZ());
+        var added = 0;
+        // Iterate through all indices.
+        for (var i = 0; i < indices.length; i++) {
+            // Try to add the item. If our inventory is not full, then splice the
+            // item out of the list of items. In order to fetch the right item, we
+            // have to offset the number of items already added.
+            if (this.addItem(mapItems[indices[i]  - added])) {
+                mapItems.splice(indices[i] - added, 1);
+                added++;
+            } else {
+                // Inventory is full
+                break;
+            }
+        }
+        // Update the map items
+        this._map.setItemsAt(this.getX(), this.getY(), this.getZ(), mapItems);
+        // Return true only if we added all items
+        return added === indices.length;
+    },
+    dropItem: function(i) {
+        // Drops an item to the current map tile
+        if (this._items[i]) {
+            if (this._map) {
+                this._map.addItem(this.getX(), this.getY(), this.getZ(), this._items[i]);
+            }
+            this.removeItem(i);
+        }
+    }
+};
 
  // Player template
 Game.PlayerTemplate = {
     character: '@',
     foreground: 'white',
     background: 'black',
-    maxHp: 40,
+    maxHp: 1,
     attackValue: 10,
-    sightRadius: 6,
-    mixins: [Game.Mixins.Moveable, Game.Mixins.PlayerActor,
+    sightRadius: 9,
+    inventorySlots: 22,
+    mixins: [Game.Mixins.PlayerActor,
             Game.Mixins.Attacker, Game.Mixins.Destructible,
-            Game.Mixins.MessageRecipient, Game.Mixins.Sight]
+            Game.Mixins.MessageRecipient, Game.Mixins.Sight,
+            Game.Mixins.InventoryHolder]
 }
 
 Game.Mixins.FungusActor = {
@@ -223,9 +271,9 @@ Game.Mixins.FungusActor = {
                     if (this.getMap().isEmptyFloor(this.getX() + xOffset,
                                                    this.getY() + yOffset,
                                                    this.getZ())) {
-                        var entity = new Game.Entity(Game.FungusTemplate);
-                        entity.setPosition(this.getX() + xOffset,
-                            this.getY() + yOffset, this.getZ());
+                        var entity = Game.EntityRepository.create('fungus');
+                        entity.setPosition(this.getX() + xOffset, this.getY() + yOffset,
+                            this.getZ());
                         this.getMap().addEntity(entity);
                         this._growthsRemaining--;
                         // Send a message nearby!
@@ -238,11 +286,63 @@ Game.Mixins.FungusActor = {
         }
     }
 }
+// Create our central entity repository
+Game.EntityRepository = new Game.Repository('entities', Game.Entity);
 
-Game.FungusTemplate = {
+Game.EntityRepository.define('fungus', {
     name: 'fungus',
     character: 'F',
     foreground: 'green',
     maxHp: 10,
     mixins: [Game.Mixins.FungusActor, Game.Mixins.Destructible]
-}
+});
+
+Game.EntityRepository.define('bat', {
+    name: 'bat',
+    character: 'B',
+    foreground: 'white',
+    maxHp: 5,
+    attackValue: 4,
+    mixins: [Game.Mixins.WanderActor,
+             Game.Mixins.Attacker, Game.Mixins.Destructible]
+});
+
+Game.EntityRepository.define('newt', {
+    name: 'newt',
+    character: ':',
+    foreground: 'yellow',
+    maxHp: 3,
+    attackValue: 2,
+    mixins: [Game.Mixins.WanderActor,
+             Game.Mixins.Attacker, Game.Mixins.Destructible]
+});
+
+// NPC Templates
+// NOTE: Refactored to use a repository to store templates.
+// Game.BatTemplate = {
+//     name: 'bat',
+//     character: 'B',
+//     foreground: 'white',
+//     maxHp: 5,
+//     attackValue: 4,
+//     mixins: [Game.Mixins.WanderActor,
+//              Game.Mixins.Attacker, Game.Mixins.Destructible]
+// };
+//
+// Game.NewtTemplate = {
+//     name: 'newt',
+//     character: ':',
+//     foreground: 'yellow',
+//     maxHp: 3,
+//     attackValue: 2,
+//     mixins: [Game.Mixins.WanderActor,
+//              Game.Mixins.Attacker, Game.Mixins.Destructible]
+// };
+//
+// Game.FungusTemplate = {
+//     name: 'fungus',
+//     character: 'F',
+//     foreground: 'green',
+//     maxHp: 10,
+//     mixins: [Game.Mixins.FungusActor, Game.Mixins.Destructible]
+// }
