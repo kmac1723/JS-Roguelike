@@ -2,8 +2,12 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T14:31:37+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-29T13:03:08+01:00
+ * @Last modified time: 2018-05-04T20:11:16+01:00
  */
+
+ // NOTE: This is doing a lot of work that might not necessarily be related to the map
+ //   such as setting up schedulers and adding entities?
+
  Game.Map = function(tiles, player) {
      this._tiles = tiles;
      // cache dimensions
@@ -19,10 +23,11 @@
     this._entities = {};
     // Create a table which will hold the items
     this._items = {};
-    // create the engine and scheduler
-    this._scheduler = new ROT.Scheduler.Simple();
+    // Create the engine and scheduler
+    this._scheduler = new ROT.Scheduler.Speed();
     this._engine = new ROT.Engine(this._scheduler);
     // add the player
+    this._player = player;
     this.addEntityAtRandomPosition(player, 0);
     // // Add random enemies to each floor.
     // NOTE: refactored to use Entity/Item repositories
@@ -47,6 +52,13 @@
             // Add a random entity
             this.addItemAtRandomPosition(Game.ItemRepository.createRandom(), z);
         }
+    }
+    // Add weapons and armor to the map in random positions
+    var templates = ['dagger', 'sword', 'staff',
+        'tunic', 'chainmail', 'platemail'];
+    for (var i = 0; i < templates.length; i++) {
+        this.addItemAtRandomPosition(Game.ItemRepository.create(templates[i]),
+            Math.floor(this._depth * Math.random()));
     }
     // Setup the explored array
     this._explored = new Array(this._depth);
@@ -159,6 +171,11 @@ Game.Map.prototype.getEntityAt = function(x, y, z){
     return this._entities[x + ',' + y + ',' + z];
 };
 
+
+Game.Map.prototype.getPlayer = function() {
+    return this._player;
+};
+
 Game.Map.prototype.addEntity = function(entity) {
     // Update the entity's map
     entity.setMap(this);
@@ -170,7 +187,6 @@ Game.Map.prototype.addEntity = function(entity) {
        this._scheduler.add(entity, true);
     }
 };
-
 
 Game.Map.prototype.addEntityAtRandomPosition = function(entity, z) {
     var position = this.getRandomFloorPosition(z);
@@ -214,7 +230,7 @@ Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY,
 
 Game.Map.prototype.updateEntityPosition = function(entity, oldX, oldY, oldZ) {
     // Delete the old key if it is the same entity and we have old positions.
-    if (oldX) {
+    if (typeof oldX ==='number') {
         var oldKey = oldX + ',' + oldY + ',' + oldZ;
         if (this._entities[oldKey] == entity) {
             delete this._entities[oldKey];

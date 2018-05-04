@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T13:11:49+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-29T14:43:32+01:00
+ * @Last modified time: 2018-04-29T22:08:51+01:00
  */
 
  // rot.js tutorial program
@@ -27,6 +27,8 @@
 
         var game = this; // So that we don't lose this
         var bindEventToScreen = function(event) {
+          // NOTE: Event listented added to window, could be added to something else?
+          //    Could eliminate the need to click on the window before the game will accept keyboard presses.
             window.addEventListener(event, function(e) {
                 // When an event is received, send it to the
                 // screen if there is one
@@ -67,6 +69,7 @@
           this.refresh();
       }
     },
+    // NOTE: Re-Rendering the currnet screen happens here, might chagne when adding animations e.g. ranged attacks
     refresh: function() {
         // Clear the screen
         this._display.clear();
@@ -75,6 +78,8 @@
     },
 }
 
+// Perform checks to ensure that the browser can run the game.
+// May ned to include additional checks here if using other libraies?
 window.onload = function(){
   if (!ROT.isSupported()) {
       alert("The rot.js library isn't supported by your browser.");
