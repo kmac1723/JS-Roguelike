@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-01T20:13:08+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-03T18:40:29+01:00
+ * @Last modified time: 2018-05-12T13:04:35+01:00
  */
 
  Game.ItemMixins = {};
@@ -27,7 +27,19 @@
      },
      isWearable: function() {
          return this._wearable;
-     }
+     },
+     listeners: {
+        'details': function() {
+            var results = [];
+            if (this._wieldable) {
+                results.push({key: 'attack', value: this.getAttackValue()});
+            }
+            if (this._wearable) {
+                results.push({key: 'defense', value: this.getDefenseValue()});
+            }
+            return results;
+        }
+    }
  };
 
  // Edible mixins
@@ -57,5 +69,10 @@
          } else {
              return this._name;
          }
-     }
+     },
+     listeners: {
+        'details': function() {
+            return [{key: 'food', value: this._foodValue}];
+        }
+    }
  };

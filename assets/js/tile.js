@@ -2,11 +2,13 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T14:29:29+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-28T20:13:20+01:00
+ * @Last modified time: 2018-05-12T13:35:59+01:00
  */
 
  // Has been refactored to change Game.Tile.isWalkable to ..._walkable
  // Therefore need to alter the getter functions to refelet this?
+
+// NOTE: Added tile descriptions
  Game.Tile = function(properties) {
      properties = properties || {};
      // Call the Glyph constructor with our properties
@@ -16,6 +18,7 @@
      this._diggable = properties['diggable'] || false;
      this._blocksLight = (properties['blocksLight'] !== undefined) ?
         properties['blocksLight'] : true;
+     this._description = properties['description'] || '';
  };
  // Make tiles inherit all the functionality from glyphs
 Game.Tile.extend(Game.Glyph);
@@ -32,29 +35,47 @@ Game.Tile.prototype.isBlockingLight = function() {
 }
 
 // Tile Definitions
-Game.Tile.nullTile = new Game.Tile({})
+Game.Tile.nullTile = new Game.Tile({description: '(unknown)'})
 Game.Tile.floorTile = new Game.Tile({
     character: '.',
     walkable: true,
-    blocksLight: false
+    blocksLight: false,
+    description: 'A cave floor'
 });
 Game.Tile.wallTile = new Game.Tile({
     character: '#',
     foreground: 'goldenrod',
     diggable: true,
-    // blocksLight: true
+    // blocksLight: true,
+    description: 'A cave wall'
 });
 Game.Tile.stairsUpTile = new Game.Tile({
     character: '<',
     foreground: 'white',
     walkable: true,
-    blocksLight: false
+    blocksLight: false,
+    description: 'A rock staircase leading upwards'
 });
 Game.Tile.stairsDownTile = new Game.Tile({
     character: '>',
     foreground: 'white',
     walkable: true,
-    blocksLight: false
+    blocksLight: false,
+    description: 'A rock staircase leading downwards'
+});
+Game.Tile.holeToCavernTile = new Game.Tile({
+    character: 'O',
+    foreground: 'white',
+    walkable: true,
+    blocksLight: false,
+    description: 'A foul smell emanates from this dark hole in the ground'
+});
+Game.Tile.waterTile = new Game.Tile({
+    character: '~',
+    foreground: 'blue',
+    walkable: false,
+    blocksLight: false,
+    description: 'Murky water'
 });
 
 // helper function

@@ -41,6 +41,9 @@ TO PLAY THE GAME:
         to restart the game.
     - Hunger system, with current hunger state displayed in the bottem left of the
         screen.  Eat regularly to avoid death.
+    - Gain experience by killing enemies, and level up you stats!  Enemies also
+        get tougher and stronger the further down you go.
+    - Boss level!
 
 NOTE REGARDING TUTORIAL:
   The last update to the series was on November 25, 2013, and apparently has not been

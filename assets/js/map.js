@@ -2,67 +2,32 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T14:31:37+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-04T20:11:16+01:00
+ * @Last modified time: 2018-05-10T18:43:51+01:00
  */
 
  // NOTE: This is doing a lot of work that might not necessarily be related to the map
  //   such as setting up schedulers and adding entities?
-
+// NOTE: Refactored to allow the creation of seperate map objects, with thier own
+//        spawn tables and such.  Examples given in cave.js and bosscavern.js
  Game.Map = function(tiles, player) {
      this._tiles = tiles;
-     // cache dimensions
-    this._depth = tiles.length
-    this._width = tiles[0].length;
-    this._height = tiles[0][0].length;
-
-    // setup the field of visions
-    this._fov = [];
-    this.setupFov();
-
-     // create a hashtable which will hold the entities
-    this._entities = {};
-    // Create a table which will hold the items
-    this._items = {};
-    // Create the engine and scheduler
-    this._scheduler = new ROT.Scheduler.Speed();
-    this._engine = new ROT.Engine(this._scheduler);
-    // add the player
-    this._player = player;
-    this.addEntityAtRandomPosition(player, 0);
-    // // Add random enemies to each floor.
-    // NOTE: refactored to use Entity/Item repositories
-    // var templates = [Game.FungusTemplate, Game.BatTemplate, Game.NewtTemplate];
-    // for (var z = 0; z < this._depth; z++) {
-    //     for (var i = 0; i < 15; i++) {
-    //         // Randomly select a template
-    //         var template = templates[Math.floor(Math.random() * templates.length)];
-    //         // Place the entity
-    //         this.addEntityAtRandomPosition(new Game.Entity(template), z);
-    //     }
-    // }
-    // Add random entities and items to each floor.
-    for (var z = 0; z < this._depth; z++) {
-        // 15 entities per floor
-        for (var i = 0; i < 15; i++) {
-            // Add a random entity
-            this.addEntityAtRandomPosition(Game.EntityRepository.createRandom(), z);
-        }
-        // 10 items per floor
-        for (var i = 0; i < 15; i++) {
-            // Add a random entity
-            this.addItemAtRandomPosition(Game.ItemRepository.createRandom(), z);
-        }
-    }
-    // Add weapons and armor to the map in random positions
-    var templates = ['dagger', 'sword', 'staff',
-        'tunic', 'chainmail', 'platemail'];
-    for (var i = 0; i < templates.length; i++) {
-        this.addItemAtRandomPosition(Game.ItemRepository.create(templates[i]),
-            Math.floor(this._depth * Math.random()));
-    }
-    // Setup the explored array
-    this._explored = new Array(this._depth);
-    this._setupExploredArray();
+     // Cache dimensions
+     this._depth = tiles.length
+     this._width = tiles[0].length;
+     this._height = tiles[0][0].length;
+     // Setup the field of visions
+     this._fov = [];
+     this.setupFov();
+     // Create a table which will hold the entities
+     this._entities = {};
+     // Create a table which will hold the items
+     this._items = {};
+     // Create the engine and scheduler
+     this._scheduler = new ROT.Scheduler.Speed();
+     this._engine = new ROT.Engine(this._scheduler);
+     // Setup the explored array
+     this._explored = new Array(this._depth);
+     this._setupExploredArray();
  };
 
  // Standard getters
@@ -186,6 +151,10 @@ Game.Map.prototype.addEntity = function(entity) {
     if (entity.hasMixin('Actor')) {
        this._scheduler.add(entity, true);
     }
+    // If the entity is the player, set the player.
+    if (entity.hasMixin(Game.EntityMixins.PlayerActor)) {
+        this._player = entity;
+    }
 };
 
 Game.Map.prototype.addEntityAtRandomPosition = function(entity, z) {
@@ -205,6 +174,10 @@ Game.Map.prototype.removeEntity = function(entity) {
     // If the entity is an actor, remove them from the scheduler
     if (entity.hasMixin('Actor')) {
         this._scheduler.remove(entity);
+    }
+    // If the entity is the player, update the player field.
+    if (entity.hasMixin(Game.EntityMixins.PlayerActor)) {
+        this._player = undefined;
     }
 }
 

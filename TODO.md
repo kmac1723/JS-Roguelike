@@ -6,6 +6,7 @@ Remove bug(?) where the player has to click on the window before the game will
 Tidy code:
   Group class methods together to collect similar/related functionality.
   Separate screens.js file into multiple screens for different gamestates.
+  Seperate entitymixins.js into scripts that group related mixins (e.g. combat, experience).
   Update comments to reflect state of code.
   Check all formatting and indentation.
 Embed game into webpage:

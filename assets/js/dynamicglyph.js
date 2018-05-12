@@ -2,12 +2,14 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-01T19:49:27+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-01T19:53:06+01:00
+ * @Last modified time: 2018-05-12T13:07:37+01:00
  */
 
  // NOTE: Dynamic glyph class to extend the glyph class.  Has a name attribute and
  //   mixins.  Allow sthe describe function to work with entities and items.
- // NOTE: Code pulled from the entity.js script.
+
+ // NOTE: Added event listeners
+
  Game.DynamicGlyph = function(properties) {
      properties = properties || {};
      // Call the glyph's construtor with our set of properties
@@ -19,6 +21,8 @@
      this._attachedMixins = {};
      // Create a similar object for groups
      this._attachedMixinGroups = {};
+     // Set up an object for listeners
+     this._listeners = {};
      // Setup the object's mixins
      var mixins = properties['mixins'] || [];
      for (var i = 0; i < mixins.length; i++) {
@@ -27,15 +31,28 @@
          // also make sure not to override a property that
          // already exists on the entity.
          for (var key in mixins[i]) {
-             if (key != 'init' && key != 'name' && !this.hasOwnProperty(key)) {
-                 this[key] = mixins[i][key];
-             }
+             if (key != 'init' && key != 'name' && key != 'listeners'
+                  && !this.hasOwnProperty(key)) {
+                     this[key] = mixins[i][key];
+                 }
          }
          // Add the name of this mixin to our attached mixins
          this._attachedMixins[mixins[i].name] = true;
          // If a group name is present, add it
          if (mixins[i].groupName) {
              this._attachedMixinGroups[mixins[i].groupName] = true;
+         }
+         // Add all of our listeners
+         if (mixins[i].listeners) {
+             for (var key in mixins[i].listeners) {
+                 // If we don't already have a key for this event in our listeners
+                 // array, add it.
+                 if (!this._listeners[key]) {
+                     this._listeners[key] = [];
+                 }
+                 // Add the listener.
+                 this._listeners[key].push(mixins[i].listeners[key]);
+             }
          }
          // Finally call the init function if there is one
          if (mixins[i].init) {
@@ -80,3 +97,35 @@
      var prefix = capitalize ? 'The' : 'the';
      return prefix + ' ' + this.describe();
  };
+
+ Game.DynamicGlyph.prototype.raiseEvent = function(event) {
+      // Make sure we have at least one listener, or else exit
+      if (!this._listeners[event]) {
+          return;
+      }
+      // Extract any arguments passed, removing the event name
+      var args = Array.prototype.slice.call(arguments, 1)
+      // Invoke each listener, with this entity as the context and the arguments
+      var results = [];
+      for (var i = 0; i < this._listeners[event].length; i++) {
+          results.push(this._listeners[event][i].apply(this, args));
+      }
+      return results;
+  };
+
+// NOTE: Details function is used by mixinx to return key: value pairs
+  Game.DynamicGlyph.prototype.details = function() {
+      var details = [];
+      var detailGroups = this.raiseEvent('details');
+      // Iterate through each return value, grabbing the detaisl from the arrays.
+      if (detailGroups) {
+          for (var i = 0, l = detailGroups.length; i < l; i++) {
+              if (detailGroups[i]) {
+                  for (var j = 0; j < detailGroups[i].length; j++) {
+                      details.push(detailGroups[i][j].key + ': ' +  detailGroups[i][j].value);
+                  }
+              }
+          }
+      }
+      return details.join(', ');
+  };
