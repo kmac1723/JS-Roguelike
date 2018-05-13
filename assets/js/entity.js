@@ -2,10 +2,9 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T16:23:55+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-10T18:55:28+01:00
+ * @Last modified time: 2018-05-12T16:11:51+01:00
  */
 
-// NOTE: Code refactored to extend entity class from dynamic glpyh instead of glyph
  Game.Entity = function(properties) {
    properties = properties || {};
     // Call the dynamic glyph's construtor with our set of properties

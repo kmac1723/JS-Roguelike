@@ -2,13 +2,12 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T13:11:49+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-04-29T22:08:51+01:00
+ * @Last modified time: 2018-05-12T16:00:40+01:00
  */
 
  // rot.js tutorial program
 
  // TODO: Make game react to button presses without having to click on the window
- // TODO: Properly organise and document all scripts, to ensure understanding.
 
  var Game =  {
     _display: null,
@@ -27,7 +26,7 @@
 
         var game = this; // So that we don't lose this
         var bindEventToScreen = function(event) {
-          // NOTE: Event listented added to window, could be added to something else?
+          // NOTE: Event listenter added to window, could be added to something else?
           //    Could eliminate the need to click on the window before the game will accept keyboard presses.
             window.addEventListener(event, function(e) {
                 // When an event is received, send it to the

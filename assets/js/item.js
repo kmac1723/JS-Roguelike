@@ -2,12 +2,11 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-29T12:43:02+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-01T19:58:15+01:00
+ * @Last modified time: 2018-05-12T16:25:24+01:00
  */
 
 // Base class for items.
 
-// NOTE: Refactored to inherit from DynamicGlyph class.
  Game.Item = function(properties) {
      properties = properties || {};
      // Call the glyph's construtor with our set of properties

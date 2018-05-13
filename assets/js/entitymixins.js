@@ -2,14 +2,17 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-01T19:37:39+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-12T13:06:27+01:00
+ * @Last modified time: 2018-05-13T22:28:23+01:00
  */
 
- // NOTE: Some entity mixins have been modified to use event listeners to call
- //   actions based on named events such as onDeath, onGainLevel etc.
+// Entitiy mixins, containing packets of functions and variables
+
+// TODO: Remove mixins into seperate scripts, grouped by gameplay aspects e.g. combat?
+
  // Create our Mixins namespace
  Game.EntityMixins = {};
 
+// ==============================
  Game.EntityMixins.Equipper = {
     name: 'Equipper',
     init: function(template) {
@@ -87,214 +90,6 @@
         }
     }
 };
-
-// TaskActor mixin defines a list of taks that the entity will attempt sequentially.
-//  The first task that is possible to be done is then exectued that turn.
-// Hunt task uses ROT.Astar pathfinding algorithm.
-// NOTE: available tasks are defined by an array of strings, corresponding to functions
-//          within the TaskActor mixin.  Better way to do this?  All tasks are hard-coded.
-
-// BUG: The hunt task not working properly?
- Game.EntityMixins.TaskActor = {
-    name: 'TaskActor',
-    groupName: 'Actor',
-    init: function(template) {
-        // Load tasks
-        this._tasks = template['tasks'] || ['wander'];
-        // console.log(this._tasks); // BUG: task array is created correctly
-    },
-    act: function() {
-        // Iterate through all our tasks
-        for (var i = 0; i < this._tasks.length; i++) {
-            if (this.canDoTask(this._tasks[i])) {
-                // If we can perform the task, execute the function for it.
-                this[this._tasks[i]]();
-                return;
-            }
-        }
-    },
-
-    canDoTask: function(task) {
-        if (task === 'hunt') {
-            return this.hasMixin('Sight') && this.canSee(this.getMap().getPlayer());
-        } else if (task === 'wander') {
-            return true;
-        } else {
-            throw new Error('Tried to perform undefined task ' + task);
-        }
-    },
-    hunt: function() {
-        console.log('Hunting player...'); // BUG: Not calling this function
-        var player = this.getMap().getPlayer();
-
-        // If we are adjacent to the player, then attack instead of hunting.
-        var offsets = Math.abs(player.getX() - this.getX()) +
-            Math.abs(player.getY() - this.getY());
-        if (offsets === 1) {
-            if (this.hasMixin('Attacker')) {
-                this.attack(player);
-                return;
-            }
-        }
-
-        // Generate the path and move to the first tile.
-        var source = this;
-        var z = source.getZ();
-        var path = new ROT.Path.AStar(player.getX(), player.getY(), function(x, y) {
-            // If an entity is present at the tile, can't move there.
-            var entity = source.getMap().getEntityAt(x, y, z);
-            if (entity && entity !== player && entity !== source) {
-                return false;
-            }
-            return source.getMap().getTile(x, y, z).isWalkable();
-        }, {topology: 4});
-        // Once we've gotten the path, we want to move to the second cell that is
-        // passed in the callback (the first is the entity's strting point)
-        var count = 0;
-        path.compute(source.getX(), source.getY(), function(x, y) {
-            if (count == 1) {
-                source.tryMove(x, y, z);
-            }
-            count++;
-        });
-    },
-    wander: function() {
-        // Flip coin to determine if moving by 1 in the positive or negative direction
-        var moveOffset = (Math.round(Math.random()) === 1) ? 1 : -1;
-        // Flip coin to determine if moving in x direction or y direction
-        if (Math.round(Math.random()) === 1) {
-            this.tryMove(this.getX() + moveOffset, this.getY(), this.getZ());
-        } else {
-            this.tryMove(this.getX(), this.getY() + moveOffset, this.getZ());
-        }
-    }
-};
-
-// Makes an entity attackable and destroyable
-// Also applies experience to the attacking entity.
-// NOTE: Refactor this to separate these functions
-// BUG: Cloned Fungus creatures do not grant experiance
- Game.EntityMixins.Destructible = {
-    name: 'Destructible',
-    init: function(template) {
-      this._maxHp = template['maxHp'] || 10;
-      // We allow taking in health from the template incase we want
-      // the entity to start with a different amount of HP than the
-      // max specified.
-      this._hp = template['hp'] || this._maxHp;
-      this._defenseValue = template['defenseValue'] || 0;
-    },
-    getHp: function() {
-        return this._hp;
-    },
-    getMaxHp: function() {
-        return this._maxHp;
-    },
-    getDefenseValue: function() {
-        var modifier = 0;
-        // If we can equip items, then have to take into
-        // consideration weapon and armor
-        if (this.hasMixin(Game.EntityMixins.Equipper)) {
-            if (this.getWeapon()) {
-                modifier += this.getWeapon().getDefenseValue();
-            }
-            if (this.getArmor()) {
-                modifier += this.getArmor().getDefenseValue();
-            }
-        }
-        return this._defenseValue + modifier;
-    },
-    takeDamage: function(attacker, damage) {
-        this._hp -= damage;
-        // If have 0 or less HP, then remove ourseles from the map
-        if (this._hp <= 0) {
-            Game.sendMessage(attacker, 'You kill the %s!', [this.getName()]);
-            // Raise events
-            this.raiseEvent('onDeath', attacker);
-            attacker.raiseEvent('onKill', this);
-            this.kill();
-        }
-    },
-    setHp: function(hp) {
-        this._hp = hp;
-    },
-    increaseDefenseValue: function(value) {
-        // If no value was passed, default to 2.
-        value = value || 2;
-        // Add to the defense value.
-        this._defenseValue += value;
-        Game.sendMessage(this, "You look tougher!");
-    },
-    increaseMaxHp: function(value) {
-        // If no value was passed, default to 10.
-        value = value || 10;
-        // Add to both max HP and HP.
-        this._maxHp += value;
-        this._hp += value;
-        Game.sendMessage(this, "You look healthier!");
-    },
-    listeners: {
-        onGainLevel: function() {
-            // Heal the entity.
-            this.setHp(this.getMaxHp());
-        },
-        details: function() {
-            return [
-                {key: 'defense', value: this.getDefenseValue()},
-                {key: 'hp', value: this.getHp()}
-            ];
-        }
-    }
-}
-
-Game.EntityMixins.Attacker = {
-    name: 'Attacker',
-    groupName: 'Attacker',
-    init: function(template) {
-        this._attackValue = template['attackValue'] || 1;
-    },
-    getAttackValue: function() {
-        var modifier = 0;
-        // If we can equip items, then have to take into
-        // consideration weapon and armor
-        if (this.hasMixin(Game.EntityMixins.Equipper)) {
-            if (this.getWeapon()) {
-                modifier += this.getWeapon().getAttackValue();
-            }
-            if (this.getArmor()) {
-                modifier += this.getArmor().getAttackValue();
-            }
-        }
-        return this._attackValue + modifier;
-    },
-    increaseAttackValue: function(value) {
-        // If no value was passed, default to 2.
-        value = value || 2;
-        // Add to the attack value.
-        this._attackValue += value;
-        Game.sendMessage(this, "You look stronger!");
-    },
-    attack: function(target) {
-      // If the target is destructible, calculate the damage
-      // based on attack and defense value
-        if (target.hasMixin('Destructible')) {
-          var attack = this.getAttackValue();
-          var defense = target.getDefenseValue();
-          var max = Math.max(0, attack - defense);
-          var damage = 1 + Math.floor(Math.random() * max);
-          Game.sendMessage(this, 'You strike the %s for %d damage!',
-              [target.getName(), damage]);
-          Game.sendMessage(target, 'The %s strikes you for %d damage!',
-              [this.getName(), damage]);
-          target.takeDamage(this, damage);
-        }
-    },
-    listeners: {
-        details: function() {
-            return [{key: 'attack', value: this.getAttackValue()}];
-        }
-    }
-}
 
 Game.EntityMixins.MessageRecipient = {
     name: 'MessageRecipient',
@@ -422,7 +217,7 @@ Game.EntityMixins.PlayerActor = {
     }
 };
 
-// INventory mixins
+// Inventory mixins
 Game.EntityMixins.InventoryHolder = {
     name: 'InventoryHolder',
     init: function(template) {
@@ -497,45 +292,6 @@ Game.EntityMixins.InventoryHolder = {
         }
     }
 };
-
-Game.EntityMixins.FungusActor = {
-    name: 'FungusActor',
-    groupName: 'Actor',
-    init: function() {
-        this._growthsRemaining = 5;
-    },
-    act: function() {
-        // Check if we are going to try growing this turn
-        if (this._growthsRemaining > 0) {
-            if (Math.random() <= 0.02) {
-                // Generate the coordinates of a random adjacent square by
-                // generating an offset between [-1, 0, 1] for both the x and
-                // y directions. To do this, we generate a number from 0-2 and then
-                // subtract 1.
-                var xOffset = Math.floor(Math.random() * 3) - 1;
-                var yOffset = Math.floor(Math.random() * 3) - 1;
-                // Make sure we aren't trying to spawn on the same tile as us
-                if (xOffset != 0 || yOffset != 0) {
-                    // Check if we can actually spawn at that location, and if so
-                    // then we grow!
-                    if (this.getMap().isEmptyFloor(this.getX() + xOffset,
-                                                   this.getY() + yOffset,
-                                                   this.getZ())) {
-                        var entity = Game.EntityRepository.create('fungus');
-                        entity.setPosition(this.getX() + xOffset, this.getY() + yOffset,
-                            this.getZ());
-                        this.getMap().addEntity(entity);
-                        this._growthsRemaining--;
-                        // Send a message nearby!
-                        Game.sendMessageNearby(this.getMap(),
-                            entity.getX(), entity.getY(), entity.getZ(),
-                            'The fungus is spreading!');
-                    }
-                }
-            }
-        }
-    }
-}
 
 Game.EntityMixins.CorpseDropper = {
     name: 'CorpseDropper',
@@ -676,61 +432,3 @@ Game.EntityMixins.PlayerStatGainer = {
         }
     }
 };
-
-// Class for zombie boss task actor class
-// NOTE: Maybe this and TaskActor could be refactored into a general purpose task lis
-
-Game.EntityMixins.GiantZombieActor = Game.extend(Game.EntityMixins.TaskActor, {
-    init: function(template) {
-        // Call the task actor init with the right tasks.
-        Game.EntityMixins.TaskActor.init.call(this, Game.extend(template, {
-            'tasks' : ['growArm', 'spawnSlime', 'hunt', 'wander']
-        }));
-        // We only want to grow the arm once.
-        this._hasGrownArm = false;
-    },
-    canDoTask: function(task) {
-        // If we haven't already grown arm and HP <= 20, then we can grow.
-        if (task === 'growArm') {
-            return this.getHp() <= 20 && !this._hasGrownArm;
-        // Spawn a slime only a 10% of turns.
-        } else if (task === 'spawnSlime') {
-            return Math.round(Math.random() * 100) <= 10;
-        // Call parent canDoTask
-        } else {
-            return Game.EntityMixins.TaskActor.canDoTask.call(this, task);
-        }
-    },
-    growArm: function() {
-        this._hasGrownArm = true;
-        this.increaseAttackValue(5);
-        // Send a message saying the zombie grew an arm.
-        Game.sendMessageNearby(this.getMap(),
-            this.getX(), this.getY(), this.getZ(),
-            'An extra arm appears on the giant zombie!');
-    },
-    spawnSlime: function() {
-        // Generate a random position nearby.
-        var xOffset = Math.floor(Math.random() * 3) - 1;
-        var yOffset = Math.floor(Math.random() * 3) - 1;
-
-        // Check if we can spawn an entity at that position.
-        if (!this.getMap().isEmptyFloor(this.getX() + xOffset, this.getY() + yOffset,
-            this.getZ())) {
-            // If we cant, do nothing
-            return;
-        }
-        // Create the entity
-        var slime = Game.EntityRepository.create('slime');
-        slime.setX(this.getX() + xOffset);
-        slime.setY(this.getY() + yOffset)
-        slime.setZ(this.getZ());
-        this.getMap().addEntity(slime);
-    },
-    listeners: {
-        onDeath: function(attacker) {
-            // Switch to win screen when killed!
-            Game.switchScreen(Game.Screen.winScreen);
-        }
-    }
-});
