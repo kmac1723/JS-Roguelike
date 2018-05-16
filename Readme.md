@@ -19,6 +19,7 @@ TO PLAY THE GAME:
     < , > : Stairways to next/previous level.
     * , % : Items (rock, apple)
     F , : , B, k : Enemies
+    Z : Zombie boss!
 
     Other items available, such as weapons and armour.
 
