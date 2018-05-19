@@ -1,15 +1,16 @@
 Complete tutorial series up to last entry. ---- DONE
   Once done, assess state of project for further improvements and game mechanics.
-  For example, add the ability to reset the gamestate to the winning and losing screens.
-  Also, saving game needs to be implemented
-Remove bug(?) where the player has to click on the window before the game will
-  accept keyboard inputs.
+   - Follow Trystan's Tutorial to add other generic roguelike functions
+   - Allow the use of tilesets/sprite engines for Display, rather than only using rot.js.
+   - Saved games
+   - Reset game from win, lose, or quit screen.
+
 Tidy code:
   Find a better way to include scripts rather than list of script tags in HTML file.
       Non-trivial in Javascript, possibly why this project was abandoned!  It can be done in EJS however...
-  Seperate entitymixins.js into scripts that group related mixins (e.g. combat, experience).
-  Update comments to reflect state of code.
-  Check all formatting and indentation.
+------This isn't possible although you can use EJS serverside to enclose all Game scripts into
+      one EJS template for inclusion on other templates that require it.
+
 Embed game into webpage:
   Use DOM manipulation to display elements of game.
   Expose canvas element created by ROT.Display?

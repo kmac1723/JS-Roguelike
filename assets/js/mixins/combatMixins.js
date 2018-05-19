@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-13T21:32:52+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-13T22:03:49+01:00
+ * @Last modified time: 2018-05-19T10:39:42+01:00
  */
 
 // Mixins related to combat (attacking, taking damage etc.)
@@ -129,4 +129,9 @@ Game.EntityMixins.Attacker = {
             return [{key: 'attack', value: this.getAttackValue()}];
         }
     }
+}
+
+Game.EntityMixins.Thrower = {
+    name: 'Thrower',
+    
 }
