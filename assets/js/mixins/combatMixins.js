@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-13T21:32:52+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-19T10:39:42+01:00
+ * @Last modified time: 2018-05-24T13:22:58+01:00
  */
 
 // Mixins related to combat (attacking, taking damage etc.)
@@ -133,5 +133,28 @@ Game.EntityMixins.Attacker = {
 
 Game.EntityMixins.Thrower = {
     name: 'Thrower',
-    
+    init: function(template){
+
+    },
+    // Throw item
+    throw: function(targetX, targetY, targetZ, itemKey){
+          //Add item to the target location
+          this._map.addItem(targetX, targetY, targetZ, this._items[itemKey]);
+          // unequip if necessary
+          if(this.hasMixin('Equipper')){
+            this.unequip(this._items[itemKey]);
+          }
+
+          // Get entity at location
+          var hitEntity = this._map.getEntityAt(targetX, targetY, targetZ);
+          // if there is one, and it can take damage, apply damage to that entity.
+          if(hitEntity && hitEntity.hasMixin('Destructible')){
+              hitEntity.takeDamage(this._player, this._items[itemKey].thrownAttackValue);
+          }
+
+          // remove from inventory
+          if(this.hasMixin('InventoryHolder')){
+              this.removeItem(itemKey);
+          }
+    }
 }

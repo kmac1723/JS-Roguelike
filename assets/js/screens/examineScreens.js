@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-13T14:24:52+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-13T14:25:21+01:00
+ * @Last modified time: 2018-05-24T12:43:50+01:00
  */
 
  // =================================
@@ -35,7 +35,7 @@
  Game.Screen.TargetBasedScreen = function(template) {
      template = template || {};
      // By default, our ok return does nothing and does not consume a turn.
-     this._isAcceptableFunction = template['okFunction'] || function(x, y) {
+     this._okFunction = template['okFunction'] || function(x, y) {
          return false;
      };
      // The defaut caption function simply returns an empty string.
@@ -121,7 +121,7 @@
  };
 
  // ======================================================
- // Look screen, for examinig cells
+ // Look screen, for examining cells
  Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
      captionFunction: function(x, y) {
          var z = this._player.getZ();
@@ -162,3 +162,23 @@
          }
      }
  });
+
+ // ==================================
+ // Targetting screen, for throwing an object at a location/Entity
+  Game.Screen.targetScreen = new Game.Screen.TargetBasedScreen({
+      // TODO: Rename throwItem to Key
+      _throwItemKey: null,
+      okFunction: function(targetX, targetY){
+          if(this._throwItemKey && this._player.hasMixin('Thrower')){
+              this._player.throw(targetX, targetY, this._player.getZ(), this._throwItemKey);
+              return true;
+          } else {
+              console.log('Player cannot throw item!');
+              return false;
+          }
+      }
+  });
+
+  Game.Screen.targetScreen.setThrowItem = function(itemKey){
+      this._throwItemKey = itemKey;
+  }

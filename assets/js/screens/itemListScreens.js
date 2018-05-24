@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-12T20:19:38+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-12T20:32:54+01:00
+ * @Last modified time: 2018-05-24T12:44:40+01:00
  */
 
 // Screens for managing inventory, equipping items, etc.
@@ -132,6 +132,29 @@
          }
      }
  };
+
+ // ============================================
+ // Throwable items list screen
+ Game.Screen.throwableItemScreen = new Game.Screen.ItemListScreen({
+   caption: 'Select item to throw',
+   canSelect: true,
+   canSelectMultipleItems: false,
+   isAcceptable: function(item){
+     return item && item.hasMixin('Throwable');
+   },
+   ok: function(selectedItems){
+     // Once an item is selected, Setup the targetting screen.
+     var offsets = Game.Screen.playScreen.getScreenOffsets();
+     Game.Screen.targetScreen.setup(this._player,
+         this._player.getX(), this._player.getY(),
+         offsets.x, offsets.y);
+
+     // set item key as the only element of selctedItems array.
+     var key = Object.keys(selectedItems)[0];
+     Game.Screen.targetScreen.setThrowItem(key);
+     Game.Screen.playScreen.setSubScreen(Game.Screen.targetScreen);
+   }
+ })
 
 // ====================================
 // Inventory display screen.
