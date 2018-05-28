@@ -2,31 +2,11 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-13T14:24:52+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-24T12:43:50+01:00
+ * @Last modified time: 2018-05-26T08:35:55+01:00
  */
 
- // =================================
- // Examine screen
- Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
-     caption: 'Choose the item you wish to examine',
-     canSelect: true,
-     canSelectMultipleItems: false,
-     isAcceptable: function(item) {
-         return true;
-     },
-     ok: function(selectedItems) {
-         var keys = Object.keys(selectedItems);
-         if (keys.length > 0) {
-             var item = selectedItems[keys[0]];
-             Game.sendMessage(this._player, "It's %s (%s).",
-                 [
-                     item.describeA(false),
-                     item.details()
-                 ]);
-         }
-         return true;
-     }
- });
+// TODO: Add captions to look screens that instruct the player on what they are doing
+//    e.g. examining their surrondings, targeting an enemy
 
  // ====================================
  // Targetting screen, for moving a cursor across the map to examine cells, etc.
@@ -166,8 +146,11 @@
  // ==================================
  // Targetting screen, for throwing an object at a location/Entity
   Game.Screen.targetScreen = new Game.Screen.TargetBasedScreen({
-      // TODO: Rename throwItem to Key
+      // TODO: Rename this to a throwItem screen or something
       _throwItemKey: null,
+      captionFunction: function(){
+          return 'Select a tile to throw into.'
+      },
       okFunction: function(targetX, targetY){
           if(this._throwItemKey && this._player.hasMixin('Thrower')){
               this._player.throw(targetX, targetY, this._player.getZ(), this._throwItemKey);

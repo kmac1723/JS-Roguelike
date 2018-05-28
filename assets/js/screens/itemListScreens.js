@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-12T20:19:38+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-24T12:44:40+01:00
+ * @Last modified time: 2018-05-26T08:36:02+01:00
  */
 
 // Screens for managing inventory, equipping items, etc.
@@ -256,13 +256,36 @@ Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
         var keys = Object.keys(selectedItems);
         if (keys.length === 0) {
             this._player.unwield();
-            Game.sendMessage(this._player, "You are not wearing anthing.")
+            Game.sendMessage(this._player, "You are not wearing anything.")
         } else {
             // Make sure to unequip the item first in case it is the weapon.
             var item = selectedItems[keys[0]];
             this._player.unequip(item);
             this._player.wear(item);
             Game.sendMessage(this._player, "You are wearing %s.", [item.describeA()]);
+        }
+        return true;
+    }
+});
+
+// =================================
+// Examine screen
+Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
+    caption: 'Choose the item you wish to examine',
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return true;
+    },
+    ok: function(selectedItems) {
+        var keys = Object.keys(selectedItems);
+        if (keys.length > 0) {
+            var item = selectedItems[keys[0]];
+            Game.sendMessage(this._player, "It's %s (%s).",
+                [
+                    item.describeA(false),
+                    item.details()
+                ]);
         }
         return true;
     }

@@ -27,3 +27,7 @@ Inventory System
     same inventory slot, based on a maxStackSize on the item class)
     -e.g. rock maxStackSize = 16, so the player can hold 16 rocks in one slot,
       but can put other stacks of rocks in other slots.
+
+Message System
+  - Have a message log rather than one off messages that dissappear the next turn.
+    -limited size, like 10 lines or something...

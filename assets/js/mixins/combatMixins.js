@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-13T21:32:52+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-24T13:22:58+01:00
+ * @Last modified time: 2018-05-26T08:32:06+01:00
  */
 
 // Mixins related to combat (attacking, taking damage etc.)
@@ -144,14 +144,22 @@ Game.EntityMixins.Thrower = {
           if(this.hasMixin('Equipper')){
             this.unequip(this._items[itemKey]);
           }
-
           // Get entity at location
           var hitEntity = this._map.getEntityAt(targetX, targetY, targetZ);
           // if there is one, and it can take damage, apply damage to that entity.
           if(hitEntity && hitEntity.hasMixin('Destructible')){
-              hitEntity.takeDamage(this._player, this._items[itemKey].thrownAttackValue);
-          }
 
+              var damage = this._items[itemKey].getThrownAttackValue();
+
+              // console.log(this);
+              // BUG: sendMessage not working, but console.log is outputting correct string
+              // Sending to the worng object?  What is this? the player object
+              var attackString = "You strike the " + hitEntity.getName() + " for " + damage + " damage!";
+              // Game.sendMessage(this, 'You strike the %s for %d damage!',
+              //     [hitEntity.getName(), damage]);
+              Game.sendMessage(this, attackString);
+              hitEntity.takeDamage(this, damage);
+          }
           // remove from inventory
           if(this.hasMixin('InventoryHolder')){
               this.removeItem(itemKey);
