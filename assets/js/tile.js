@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T14:29:29+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-12T13:35:59+01:00
+ * @Last modified time: 2018-05-13T14:48:56+01:00
  */
 
  // Has been refactored to change Game.Tile.isWalkable to ..._walkable
@@ -33,6 +33,10 @@ Game.Tile.prototype.isDiggable = function() {
 Game.Tile.prototype.isBlockingLight = function() {
     return this._blocksLight;
 }
+
+Game.Tile.prototype.getDescription = function() {
+    return this._description;
+};
 
 // Tile Definitions
 Game.Tile.nullTile = new Game.Tile({description: '(unknown)'})

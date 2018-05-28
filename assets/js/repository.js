@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-29T12:52:08+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-01T20:46:11+01:00
+ * @Last modified time: 2018-05-12T20:37:19+01:00
  */
 /*
 A repository of templates that allows for the reation of new object based on
@@ -18,7 +18,6 @@ A repository of templates that allows for the reation of new object based on
  };
 
  // Define a new named template.
- // NOTE: now includes random templates!
  Game.Repository.prototype.define = function(name, template, options) {
      this._templates[name] = template;
     // Apply any options

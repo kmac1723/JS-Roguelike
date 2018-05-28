@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-01T20:13:08+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-12T13:04:35+01:00
+ * @Last modified time: 2018-05-19T10:47:53+01:00
  */
 
  Game.ItemMixins = {};
@@ -41,6 +41,23 @@
         }
     }
  };
+
+// Mixins for an item that can be thrown
+// TODO: Finish this
+ Game.ItemMixins.Throwable = {
+   name: 'Throwable',
+   init: function(template){
+     this._thrownAttackValue = template['thrownAttackValue'] || 1;
+   },
+   getThrownAttackValue: function(){
+     return this._thrownAttackValue;
+   },
+   listeners: {
+     details: function(){
+       return [{key: 'can be thrown', value: this._thrownAttackValue}];
+     }
+   }
+ }
 
  // Edible mixins
  Game.ItemMixins.Edible = {
