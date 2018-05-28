@@ -10,11 +10,16 @@ Current Progress:
 ================
 Can open Screens for selecting throwable items and targeting a location.
 Can add the thrown item to the targeted tile, and then remove it from inventory.
+Cannot throw item into tile outside of players Field Of View.
 Can apply damage to an entity occupying the targeted tile.
 
 
 TODO
 ====
+
+Can currently throw items into wall tiles, which need to be dug out to retrieve them
+  Need to check if the targeted tile is a wall tile or equivalent
+  Map.isEMptyFloor won't work, as that returns false if the tile has an entity on it.
 
 Prevent player throwing item onto their own tile, damaging themselves?
   (leave in for hilarity?)

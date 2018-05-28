@@ -145,23 +145,34 @@
 
  // ==================================
  // Targetting screen, for throwing an object at a location/Entity
-  Game.Screen.targetScreen = new Game.Screen.TargetBasedScreen({
-      // TODO: Rename this to a throwItem screen or something
+  Game.Screen.throwTargetScreen = new Game.Screen.TargetBasedScreen({
       _throwItemKey: null,
-      captionFunction: function(){
-          return 'Select a tile to throw into.'
+      _canSeeTarget: false,
+      captionFunction: function(x, y){
+        //   Check if the player can see the targeted tile.
+          var z = this._player.getZ();
+          var map = this._player.getMap();
+          if (this._visibleCells[x + ',' + y]){
+              this._canSeeTarget = true;
+              return 'Select a tile to throw into.';
+          } else {
+              this._canSeeTarget = false;              
+              return 'You cannot throw there!';
+          }    
       },
       okFunction: function(targetX, targetY){
-          if(this._throwItemKey && this._player.hasMixin('Thrower')){
+          if(this._canSeeTarget && this._throwItemKey && this._player.hasMixin('Thrower')){
               this._player.throw(targetX, targetY, this._player.getZ(), this._throwItemKey);
+            //   BUG: This message does not get displayed, so issue is with rendering screen twice.
+              Game.sendMessage(this._player, 'Item thrown!');
               return true;
           } else {
-              console.log('Player cannot throw item!');
+              Game.sendMessage(this._player, 'You think about throwing the item, but decide not to.');
               return false;
           }
       }
   });
 
-  Game.Screen.targetScreen.setThrowItem = function(itemKey){
+  Game.Screen.throwTargetScreen.setThrowItem = function(itemKey){
       this._throwItemKey = itemKey;
   }

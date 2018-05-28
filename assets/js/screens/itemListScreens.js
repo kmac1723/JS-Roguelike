@@ -145,14 +145,14 @@
    ok: function(selectedItems){
      // Once an item is selected, Setup the targetting screen.
      var offsets = Game.Screen.playScreen.getScreenOffsets();
-     Game.Screen.targetScreen.setup(this._player,
+     Game.Screen.throwTargetScreen.setup(this._player,
          this._player.getX(), this._player.getY(),
          offsets.x, offsets.y);
 
      // set item key as the only element of selctedItems array.
      var key = Object.keys(selectedItems)[0];
-     Game.Screen.targetScreen.setThrowItem(key);
-     Game.Screen.playScreen.setSubScreen(Game.Screen.targetScreen);
+     Game.Screen.throwTargetScreen.setThrowItem(key);
+     Game.Screen.playScreen.setSubScreen(Game.Screen.throwTargetScreen);
    }
  })
 
