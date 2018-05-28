@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-01T19:37:39+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-13T22:28:23+01:00
+ * @Last modified time: 2018-05-26T16:26:51+01:00
  */
 
 // Entitiy mixins, containing packets of functions and variables
@@ -91,6 +91,7 @@
     }
 };
 
+// TODO: Alter to allow messages to be cleared after a count of turns
 Game.EntityMixins.MessageRecipient = {
     name: 'MessageRecipient',
     init: function(template) {
@@ -211,6 +212,7 @@ Game.EntityMixins.PlayerActor = {
         // for the player to press a key.
         this.getMap().getEngine().lock();
         // Clear the message queue
+        // NOTE: need to add a function that clears messages when a certain number of turns has passed.
         this.clearMessages();
         // Reset the acting variable once the turn is complete.
         this._acting = false;

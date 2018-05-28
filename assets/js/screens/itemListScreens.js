@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-12T20:19:38+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-12T20:32:54+01:00
+ * @Last modified time: 2018-05-26T08:36:02+01:00
  */
 
 // Screens for managing inventory, equipping items, etc.
@@ -133,6 +133,29 @@
      }
  };
 
+ // ============================================
+ // Throwable items list screen
+ Game.Screen.throwableItemScreen = new Game.Screen.ItemListScreen({
+   caption: 'Select item to throw',
+   canSelect: true,
+   canSelectMultipleItems: false,
+   isAcceptable: function(item){
+     return item && item.hasMixin('Throwable');
+   },
+   ok: function(selectedItems){
+     // Once an item is selected, Setup the targetting screen.
+     var offsets = Game.Screen.playScreen.getScreenOffsets();
+     Game.Screen.throwTargetScreen.setup(this._player,
+         this._player.getX(), this._player.getY(),
+         offsets.x, offsets.y);
+
+     // set item key as the only element of selctedItems array.
+     var key = Object.keys(selectedItems)[0];
+     Game.Screen.throwTargetScreen.setThrowItem(key);
+     Game.Screen.playScreen.setSubScreen(Game.Screen.throwTargetScreen);
+   }
+ })
+
 // ====================================
 // Inventory display screen.
  Game.Screen.inventoryScreen = new Game.Screen.ItemListScreen({
@@ -233,13 +256,36 @@ Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
         var keys = Object.keys(selectedItems);
         if (keys.length === 0) {
             this._player.unwield();
-            Game.sendMessage(this._player, "You are not wearing anthing.")
+            Game.sendMessage(this._player, "You are not wearing anything.")
         } else {
             // Make sure to unequip the item first in case it is the weapon.
             var item = selectedItems[keys[0]];
             this._player.unequip(item);
             this._player.wear(item);
             Game.sendMessage(this._player, "You are wearing %s.", [item.describeA()]);
+        }
+        return true;
+    }
+});
+
+// =================================
+// Examine screen
+Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
+    caption: 'Choose the item you wish to examine',
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return true;
+    },
+    ok: function(selectedItems) {
+        var keys = Object.keys(selectedItems);
+        if (keys.length > 0) {
+            var item = selectedItems[keys[0]];
+            Game.sendMessage(this._player, "It's %s (%s).",
+                [
+                    item.describeA(false),
+                    item.details()
+                ]);
         }
         return true;
     }

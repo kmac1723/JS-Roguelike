@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-27T16:48:30+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-12T14:01:35+01:00
+ * @Last modified time: 2018-05-20T17:35:20+01:00
  */
 
  // NOTE: Refactored to seperate mixins into entitymixins.js file, so this only
@@ -23,7 +23,7 @@ Game.PlayerTemplate = {
             Game.EntityMixins.MessageRecipient, Game.EntityMixins.Sight,
             Game.EntityMixins.InventoryHolder, Game.EntityMixins.FoodConsumer,
             Game.EntityMixins.Equipper, Game.EntityMixins.ExperienceGainer,
-            Game.EntityMixins.PlayerStatGainer]
+            Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Thrower]
 }
 
 // Create our central entity repository

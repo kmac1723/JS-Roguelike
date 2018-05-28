@@ -2,31 +2,11 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-13T14:24:52+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-13T14:25:21+01:00
+ * @Last modified time: 2018-05-26T08:35:55+01:00
  */
 
- // =================================
- // Examine screen
- Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
-     caption: 'Choose the item you wish to examine',
-     canSelect: true,
-     canSelectMultipleItems: false,
-     isAcceptable: function(item) {
-         return true;
-     },
-     ok: function(selectedItems) {
-         var keys = Object.keys(selectedItems);
-         if (keys.length > 0) {
-             var item = selectedItems[keys[0]];
-             Game.sendMessage(this._player, "It's %s (%s).",
-                 [
-                     item.describeA(false),
-                     item.details()
-                 ]);
-         }
-         return true;
-     }
- });
+// TODO: Add captions to look screens that instruct the player on what they are doing
+//    e.g. examining their surrondings, targeting an enemy
 
  // ====================================
  // Targetting screen, for moving a cursor across the map to examine cells, etc.
@@ -35,7 +15,7 @@
  Game.Screen.TargetBasedScreen = function(template) {
      template = template || {};
      // By default, our ok return does nothing and does not consume a turn.
-     this._isAcceptableFunction = template['okFunction'] || function(x, y) {
+     this._okFunction = template['okFunction'] || function(x, y) {
          return false;
      };
      // The defaut caption function simply returns an empty string.
@@ -121,7 +101,7 @@
  };
 
  // ======================================================
- // Look screen, for examinig cells
+ // Look screen, for examining cells
  Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
      captionFunction: function(x, y) {
          var z = this._player.getZ();
@@ -162,3 +142,37 @@
          }
      }
  });
+
+ // ==================================
+ // Targetting screen, for throwing an object at a location/Entity
+  Game.Screen.throwTargetScreen = new Game.Screen.TargetBasedScreen({
+      _throwItemKey: null,
+      _canSeeTarget: false,
+      captionFunction: function(x, y){
+        //   Check if the player can see the targeted tile.
+          var z = this._player.getZ();
+          var map = this._player.getMap();
+          if (this._visibleCells[x + ',' + y]){
+              this._canSeeTarget = true;
+              return 'Select a tile to throw into.';
+          } else {
+              this._canSeeTarget = false;              
+              return 'You cannot throw there!';
+          }    
+      },
+      okFunction: function(targetX, targetY){
+          if(this._canSeeTarget && this._throwItemKey && this._player.hasMixin('Thrower')){
+              this._player.throw(targetX, targetY, this._player.getZ(), this._throwItemKey);
+            //   BUG: This message does not get displayed, so issue is with rendering screen twice.
+              Game.sendMessage(this._player, 'Item thrown!');
+              return true;
+          } else {
+              Game.sendMessage(this._player, 'You think about throwing the item, but decide not to.');
+              return false;
+          }
+      }
+  });
+
+  Game.Screen.throwTargetScreen.setThrowItem = function(itemKey){
+      this._throwItemKey = itemKey;
+  }

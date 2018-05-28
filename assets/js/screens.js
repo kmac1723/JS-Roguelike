@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-05-01T20:35:55+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-13T19:59:16+01:00
+ * @Last modified time: 2018-05-19T20:45:36+01:00
  */
 
  Game.Screen = {};
@@ -94,6 +94,10 @@
                  this.move(0, -1, 0);
              } else if (inputData.keyCode === ROT.VK_DOWN) {
                  this.move(0, 1, 0);
+             } else if (inputData.keyCode === ROT.VK_T) {
+                  // Open throw item screen
+                  this.showItemsSubScreen(Game.Screen.throwableItemScreen, this._player.getItems(),
+                      'You have nothing to throw.');
              } else if (inputData.keyCode === ROT.VK_I) {
                    // Show the inventory screen
                   this.showItemsSubScreen(Game.Screen.inventoryScreen, this._player.getItems(),

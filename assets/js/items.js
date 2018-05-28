@@ -2,7 +2,7 @@
  * @Author: Keith Macpherson
  * @Date:   2018-04-29T13:06:17+01:00
  * @Last modified by:   Keith Macpherson
- * @Last modified time: 2018-05-03T19:08:33+01:00
+ * @Last modified time: 2018-05-19T10:34:54+01:00
  */
 
  // Item templates
@@ -44,6 +44,8 @@
      name: 'rock',
      character: '*',
      foreground: 'white',
+     thrownAttackValue: 5,
+     mixins: [Game.ItemMixins.Throwable]
  });
 
  Game.ItemRepository.define('corpse', {

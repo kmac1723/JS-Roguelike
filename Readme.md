@@ -4,9 +4,7 @@ A Javascript Roguelike game, built using the rot.js library by Ondrej Zara,
 and based on the tutorial series by Dominic Charley-Roy.  Uses the sprintf.js
 library by Alexandru Marasteanu for the messaging system.
 
-Also includes Blob.js and FileSaver.js by Eli Grey.  These will be used to implement
-  saved games clientside.
-All required packages (rot.js, sprintf.js) are bundled in the /lib/ directory.
+All required packages and licenses (rot.js, sprintf.js) are bundled in the /lib/ directory.
 
 TO PLAY THE GAME:
   Open up main.html in a browser.  There should be a game window with the Javascript
@@ -19,6 +17,7 @@ TO PLAY THE GAME:
     < , > : Stairways to next/previous level.
     * , % : Items (rock, apple)
     F , : , B, k : Enemies
+    Z : Zombie boss!
 
     Other items available, such as weapons and armour.
 
